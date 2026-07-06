@@ -43,7 +43,9 @@ function ProjectsPage() {
     loading: loadingConfigs,
     refresh,
   } = useCachedData(
-    session?.user?.id ? `project-configs:${session.user.id}` : "project-configs-loading",
+    session?.user?.id
+      ? `project-configs:${session.user.id}`
+      : "project-configs-loading",
     listProjectConfigs,
     TTL.DASHBOARD_SUMMARY
   )
@@ -72,8 +74,6 @@ function ProjectsPage() {
     setName("")
     setDodoLiveApiKey("")
     setDodoTestApiKey("")
-    setDodoLiveProductId("")
-    setDodoTestProductId("")
     setCurrency("usd")
     setRedirectUrl("")
     setError("")
@@ -141,8 +141,6 @@ function ProjectsPage() {
             name,
             dodoLiveApiKey,
             dodoTestApiKey,
-            dodoLiveProductId,
-            dodoTestProductId,
             currency,
             redirectUrl,
           },
@@ -260,41 +258,44 @@ function ProjectsPage() {
                   </div>
                 </div>
 
-                {/* Live Product ID */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-mono text-xs font-bold tracking-wider text-neutral-600 uppercase dark:text-neutral-400">
-                    Dodo Live Product ID
-                  </label>
-                  <div className="relative flex items-center">
-                    <Lock className="pointer-events-none absolute left-3 h-4 w-4 text-neutral-400" />
-                    <input
-                      type="text"
-                      value={dodoLiveProductId}
-                      onChange={(e) => setDodoLiveProductId(e.target.value)}
-                      placeholder="pdt_..."
-                      required
-                      className="w-full border-2 border-black bg-white py-2 pr-4 pl-10 font-mono text-sm text-black transition-all outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:bg-yellow-50/10 dark:border-white dark:bg-black dark:text-white dark:focus:bg-zinc-950"
-                    />
-                  </div>
-                </div>
+                {/* Product IDs (Edit only) */}
+                {mode === "edit" && (
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-mono text-xs font-bold tracking-wider text-neutral-600 uppercase dark:text-neutral-400">
+                        Dodo Live Product ID
+                      </label>
+                      <div className="relative flex items-center">
+                        <Lock className="pointer-events-none absolute left-3 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="text"
+                          value={dodoLiveProductId}
+                          onChange={(e) => setDodoLiveProductId(e.target.value)}
+                          placeholder="pdt_..."
+                          required
+                          className="w-full border-2 border-black bg-white py-2 pr-4 pl-10 font-mono text-sm text-black transition-all outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:bg-yellow-50/10 dark:border-white dark:bg-black dark:text-white dark:focus:bg-zinc-950"
+                        />
+                      </div>
+                    </div>
 
-                {/* Test Product ID */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="font-mono text-xs font-bold tracking-wider text-neutral-600 uppercase dark:text-neutral-400">
-                    Dodo Test Product ID
-                  </label>
-                  <div className="relative flex items-center">
-                    <Lock className="pointer-events-none absolute left-3 h-4 w-4 text-neutral-400" />
-                    <input
-                      type="text"
-                      value={dodoTestProductId}
-                      onChange={(e) => setDodoTestProductId(e.target.value)}
-                      placeholder="pdt_..."
-                      required
-                      className="w-full border-2 border-black bg-white py-2 pr-4 pl-10 font-mono text-sm text-black transition-all outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:bg-yellow-50/10 dark:border-white dark:bg-black dark:text-white dark:focus:bg-zinc-950"
-                    />
-                  </div>
-                </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-mono text-xs font-bold tracking-wider text-neutral-600 uppercase dark:text-neutral-400">
+                        Dodo Test Product ID
+                      </label>
+                      <div className="relative flex items-center">
+                        <Lock className="pointer-events-none absolute left-3 h-4 w-4 text-neutral-400" />
+                        <input
+                          type="text"
+                          value={dodoTestProductId}
+                          onChange={(e) => setDodoTestProductId(e.target.value)}
+                          placeholder="pdt_..."
+                          required
+                          className="w-full border-2 border-black bg-white py-2 pr-4 pl-10 font-mono text-sm text-black transition-all outline-none focus:translate-x-[1px] focus:translate-y-[1px] focus:bg-yellow-50/10 dark:border-white dark:bg-black dark:text-white dark:focus:bg-zinc-950"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

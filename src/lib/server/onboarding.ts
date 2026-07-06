@@ -42,8 +42,6 @@ export const submitOnboarding = createServerFn({ method: "POST" })
       name: string
       dodoLiveApiKey: string
       dodoTestApiKey: string
-      dodoLiveProductId: string
-      dodoTestProductId: string
       currency: string
       redirectUrl: string
     }>()
@@ -71,7 +69,7 @@ export const submitOnboarding = createServerFn({ method: "POST" })
         Authorization: `Bearer ${MASTER_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...ctx.data, userId }),
+      body: JSON.stringify({ ...ctx.data }),
     })
 
     if (!res.ok) {
