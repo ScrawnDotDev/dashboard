@@ -9,6 +9,7 @@ import { useCachedData, TTL, invalidateCache, useIsRefreshing } from "@/lib/useC
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useProject } from "@/lib/ProjectContext"
 
 export const Route = createFileRoute("/dashboard/api-keys")({
   head: () => ({
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/dashboard/api-keys")({
   component: ApiKeysLayout,
 })
 
-const CACHE_KEY = "api-keys"
+
 
 function ApiKeysLayout() {
   const location = useLocation()
@@ -63,15 +64,20 @@ function ApiKeysLayout() {
 
 function ApiKeysList() {
   const navigate = useNavigate()
+  const { activeProjectId } = useProject()
+  const CACHE_KEY = activeProjectId ? `api-keys-${activeProjectId}` : "api-keys"
+
   const {
     data: keysData,
     loading,
     refresh,
-  } = useCachedData(CACHE_KEY, listApiKeys, TTL.API_KEYS)
+  } = useCachedData(
+    CACHE_KEY,
+    async () => activeProjectId ? listApiKeys({ data: { projectId: activeProjectId } }) : { keys: [] },
+    TTL.API_KEYS
+  )
   const keys =
-    ((keysData as Record<string, unknown> | null)?.keys as Array<
-      Record<string, unknown>
-    >) ?? []
+    ((keysData as { keys: Array<Record<string, unknown>> } | null)?.keys) ?? []
 
   const [showCreate, setShowCreate] = useState(false)
   const [name, setName] = useState("")
@@ -89,8 +95,9 @@ function ApiKeysList() {
     setError("")
     setCreating(true)
     try {
+      if (!activeProjectId) throw new Error("No active project")
       const data = (await createApiKey({
-        data: { name, role, expiresIn: 365 * 24 * 60 * 60, webhookUrl },
+        data: { projectId: activeProjectId, name, role, expiresIn: 365 * 24 * 60 * 60, webhookUrl },
       })) as Record<string, unknown>
       setCreatedKey(data.key as string)
       setName("")
@@ -108,7 +115,8 @@ function ApiKeysList() {
   async function handleRevoke(id: string) {
     setRevoking(id)
     try {
-      await revokeApiKey({ data: { id } })
+      if (!activeProjectId) return
+      await revokeApiKey({ data: { projectId: activeProjectId, id } })
       invalidateCache(CACHE_KEY)
       await refresh()
     } catch {

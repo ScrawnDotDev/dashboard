@@ -8,13 +8,9 @@ import {
   createExpression,
   deleteExpression,
 } from "@/lib/scrawn-server"
-import {
-  useCachedData,
-  TTL,
-  invalidateCache,
-  RefreshContext,
-} from "@/lib/useCache"
+import { TTL, useCachedData, RefreshContext, invalidateCache } from "@/lib/useCache"
 import { ExpressionBuilder } from "@/components/ExpressionBuilder"
+import { useProject } from "@/lib/ProjectContext"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { useTheme } from "@/lib/theme-provider"
@@ -61,8 +57,18 @@ export const Route = createFileRoute("/dashboard/settings")({
 type TagItem = string | { key: string; amount?: number }
 
 function SettingsPage() {
-  const tags = useCachedData("tags", listTags, TTL.TAGS)
-  const exprs = useCachedData("expressions", listExpressions, TTL.EXPRESSIONS)
+  const { activeProjectId } = useProject()
+
+  const tags = useCachedData(
+    activeProjectId ? `tags-${activeProjectId}` : "tags",
+    async () => activeProjectId ? listTags({ data: { projectId: activeProjectId } }) : { tags: [] },
+    TTL.TAGS
+  )
+  const exprs = useCachedData(
+    activeProjectId ? `expressions-${activeProjectId}` : "expressions",
+    async () => activeProjectId ? listExpressions({ data: { projectId: activeProjectId } }) : { expressions: [] },
+    TTL.EXPRESSIONS
+  )
   const rawTags = (tags.data as { tags: TagItem[] } | null)?.tags ?? []
   const tagList = rawTags.map((t) => (typeof t === "string" ? t : t.key))
   const exprList =
@@ -81,18 +87,21 @@ function SettingsPage() {
   const [confirmDeleteExpr, setConfirmDeleteExpr] = useState<string | null>(null)
 
   const refreshAll = useCallback(() => {
-    invalidateCache("tags")
-    invalidateCache("expressions")
-    triggerRefresh()
-  }, [triggerRefresh])
+    if (activeProjectId) {
+      invalidateCache(`tags-${activeProjectId}`)
+      invalidateCache(`expressions-${activeProjectId}`)
+      triggerRefresh()
+    }
+  }, [triggerRefresh, activeProjectId])
 
   async function handleAddTag(e: React.FormEvent) {
     e.preventDefault()
     setTagError("")
     setCreatingTag(true)
     try {
+      if (!activeProjectId) throw new Error("No active project")
       await createTag({
-        data: { key: newTagKey, amount: parseInt(newTagAmount) || 0 },
+        data: { projectId: activeProjectId, key: newTagKey, amount: parseInt(newTagAmount) || 0 },
       })
       setNewTagKey("")
       setNewTagAmount("")
@@ -107,7 +116,8 @@ function SettingsPage() {
   async function handleDeleteTag(key: string) {
     setDeletingTag(key)
     try {
-      await deleteTag({ data: { key } })
+      if (!activeProjectId) return
+      await deleteTag({ data: { projectId: activeProjectId, key } })
       await refreshAll()
     } catch {
     } finally {
@@ -118,7 +128,8 @@ function SettingsPage() {
   async function handleAddExpr(key: string, expr: string) {
     setExprError(null)
     try {
-      await createExpression({ data: { key, expr } })
+      if (!activeProjectId) throw new Error("No active project")
+      await createExpression({ data: { projectId: activeProjectId, key, expr } })
       await refreshAll()
     } catch (err) {
       setExprError(
@@ -130,7 +141,8 @@ function SettingsPage() {
   async function handleDeleteExpr(key: string) {
     setDeletingExpr(key)
     try {
-      await deleteExpression({ data: { key } })
+      if (!activeProjectId) return
+      await deleteExpression({ data: { projectId: activeProjectId, key } })
       await refreshAll()
     } catch {
     } finally {

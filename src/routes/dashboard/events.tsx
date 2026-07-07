@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { useCachedData, TTL } from "@/lib/useCache"
 import { useMode } from "@/lib/ModeContext"
 
+import { useProject } from "@/lib/ProjectContext"
+
 export const Route = createFileRoute("/dashboard/events")({
   component: EventsPage,
 })
@@ -16,8 +18,13 @@ const EVENT_TYPE_OPTIONS = ["BASIC_USAGE", "AI_TOKEN_USAGE"]
 function EventsPage() {
   const [filters, setFilters] = useState<EventFiltersValue>({})
   const { mode, setMode } = useMode()
+  const { activeProjectId } = useProject()
   const modeParam = mode === "all" ? undefined : mode
-  const keys = useCachedData("events-page-keys", listApiKeys, TTL.API_KEYS)
+  const keys = useCachedData(
+    activeProjectId ? `events-page-keys-${activeProjectId}` : "events-page-keys",
+    async () => activeProjectId ? listApiKeys({ data: { projectId: activeProjectId } }) : { keys: [] },
+    TTL.API_KEYS
+  )
 
   const keysData = (keys.data as { keys: Array<Record<string, unknown>> } | null)?.keys ?? []
   const apiKeyOptions = keysData.map((k) => ({

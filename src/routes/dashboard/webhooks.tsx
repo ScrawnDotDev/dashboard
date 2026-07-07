@@ -5,6 +5,33 @@ import { useCachedData, TTL } from "@/lib/useCache"
 import { useMode } from "@/lib/ModeContext"
 import { WebhookFilters, type WebhookFiltersValue } from "@/components/webhooks/WebhookFilters"
 import { Button } from "@/components/ui/button"
+import { useProject } from "@/lib/ProjectContext"
+
+const DODO_WEBHOOK_EVENTS = [
+  "payment.succeeded",
+  "payment.failed",
+  "payment.processing",
+  "payment.cancelled",
+  "subscription.active",
+  "subscription.updated",
+  "subscription.on_hold",
+  "subscription.renewed",
+  "subscription.plan_changed",
+  "subscription.cancelled",
+  "subscription.failed",
+  "subscription.expired",
+  "refund.succeeded",
+  "dispute.opened",
+  "license_key.created",
+  "credit.added",
+  "credit.deducted",
+  "credit.expired",
+  "credit.rolled_over",
+  "credit.rollover_forfeited",
+  "credit.overage_charged",
+  "credit.manual_adjustment",
+  "credit.balance_low"
+]
 
 export const Route = createFileRoute("/dashboard/webhooks")({
   head: () => ({
@@ -52,15 +79,17 @@ function WebhooksPage() {
 
   const roleParam = mode === "all" ? undefined : mode
 
-  const keys = useCachedData("webhooks-page-keys", listApiKeys, TTL.API_KEYS)
-  const allTypes = useCachedData(
-    "webhooks-event-types",
-    () => listDeliveries({ data: { limit: 100 } }),
-    TTL.DASHBOARD_SUMMARY
+  const { activeProjectId } = useProject()
+
+  const keys = useCachedData(
+    activeProjectId ? `webhooks-page-keys-${activeProjectId}` : "webhooks-page-keys",
+    async () => activeProjectId ? listApiKeys({ data: { projectId: activeProjectId } }) : { keys: [] },
+    TTL.API_KEYS
   )
+
   const { data: deliveriesData, loading, refresh } = useCachedData(
-    `webhook-deliveries:mode=${mode}:apiKeyId=${filters.apiKeyId ?? ""}:eventType=${filters.eventType ?? ""}:status=${filters.status ?? ""}:page=${page}`,
-    () => listDeliveries({ data: { apiKeyId: filters.apiKeyId, eventType: filters.eventType, status: filters.status, role: roleParam, limit: 20, offset: page * 20 } }),
+    activeProjectId ? `webhook-deliveries:proj=${activeProjectId}:mode=${mode}:apiKeyId=${filters.apiKeyId ?? ""}:eventType=${filters.eventType ?? ""}:status=${filters.status ?? ""}:page=${page}` : "webhook-deliveries",
+    async () => activeProjectId ? listDeliveries({ data: { projectId: activeProjectId, apiKeyId: filters.apiKeyId, eventType: filters.eventType, status: filters.status, role: roleParam, limit: 20, offset: page * 20 } }) : { deliveries: [] },
     TTL.WEBHOOK_DELIVERIES
   )
   const deliveries =
@@ -73,9 +102,7 @@ function WebhooksPage() {
     value: k.id as string,
     label: k.name as string,
   }))
-  const allDeliveries =
-    ((allTypes.data as { deliveries: Array<Record<string, unknown>> } | null)?.deliveries ?? [])
-  const eventTypeOptions = [...new Set(allDeliveries.map((d) => String(d.eventType ?? "")).filter(Boolean))]
+  const eventTypeOptions = DODO_WEBHOOK_EVENTS
 
   function toggleExpand(id: string) {
     setExpanded((prev) => {

@@ -49,3 +49,22 @@ export const verification = pgTable("verification", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
+
+export const org = pgTable("org", {
+  orgId: text("org_id").primaryKey().notNull(),
+  userId: text("user_id")
+    .notNull()
+    .unique()
+    .references(() => user.id, {
+      onDelete: "cascade",
+    }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+export const project = pgTable("project", {
+  projectId: text("project_id").notNull().primaryKey(),
+  orgId: text("org_id")
+    .notNull()
+    .references(() => org.orgId, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})

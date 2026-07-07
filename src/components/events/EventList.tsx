@@ -4,6 +4,7 @@ import { getFilteredEvents } from "@/lib/scrawn-server"
 import { useCachedData } from "@/lib/useCache"
 import { Pagination } from "@/components/ui/pagination"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useProject } from "@/lib/ProjectContext"
 
 interface EventListProps {
   apiKeyId?: string
@@ -30,10 +31,14 @@ export function EventList({
 }: EventListProps) {
   const navigate = useNavigate()
   const [page, setPage] = useState(0)
+  const { activeProjectId } = useProject()
 
   const { data, loading, error } = useCachedData(
-    `events-list:${apiKeyId ?? ""}:${userId ?? ""}:${eventType ?? ""}:${mode ?? ""}:${model ?? ""}:${page}`,
-    () => getFilteredEvents({ data: { apiKeyId, userId, eventType, mode, model, limit: pageSize, offset: page * pageSize } }),
+    activeProjectId ? `events-list:${activeProjectId}:${apiKeyId ?? ""}:${userId ?? ""}:${eventType ?? ""}:${mode ?? ""}:${model ?? ""}:${page}` : `events-list:empty`,
+    async () => {
+      if (!activeProjectId) throw new Error("Waiting for active project...")
+      return getFilteredEvents({ data: { projectId: activeProjectId, apiKeyId, userId, eventType, mode, model, limit: pageSize, offset: page * pageSize } })
+    },
     30000
   )
 

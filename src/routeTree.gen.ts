@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as DashboardWebhooksRouteImport } from './routes/dashboard/webhooks'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
+import { Route as DashboardProjectsRouteImport } from './routes/dashboard/projects'
 import { Route as DashboardEventsRouteImport } from './routes/dashboard/events'
 import { Route as DashboardApiKeysRouteImport } from './routes/dashboard/api-keys'
 import { Route as DashboardApiKeysKeyIdRouteImport } from './routes/dashboard/api-keys.$keyId'
@@ -56,6 +57,11 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardProjectsRoute = DashboardProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardEventsRoute = DashboardEventsRouteImport.update({
   id: '/events',
   path: '/events',
@@ -84,6 +90,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/dashboard/api-keys': typeof DashboardApiKeysRouteWithChildren
   '/dashboard/events': typeof DashboardEventsRoute
+  '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/webhooks': typeof DashboardWebhooksRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/dashboard/api-keys': typeof DashboardApiKeysRouteWithChildren
   '/dashboard/events': typeof DashboardEventsRoute
+  '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/webhooks': typeof DashboardWebhooksRoute
   '/dashboard': typeof DashboardIndexRoute
@@ -110,6 +118,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/dashboard/api-keys': typeof DashboardApiKeysRouteWithChildren
   '/dashboard/events': typeof DashboardEventsRoute
+  '/dashboard/projects': typeof DashboardProjectsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/webhooks': typeof DashboardWebhooksRoute
   '/dashboard/': typeof DashboardIndexRoute
@@ -125,6 +134,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/dashboard/api-keys'
     | '/dashboard/events'
+    | '/dashboard/projects'
     | '/dashboard/settings'
     | '/dashboard/webhooks'
     | '/dashboard/'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/dashboard/api-keys'
     | '/dashboard/events'
+    | '/dashboard/projects'
     | '/dashboard/settings'
     | '/dashboard/webhooks'
     | '/dashboard'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/dashboard/api-keys'
     | '/dashboard/events'
+    | '/dashboard/projects'
     | '/dashboard/settings'
     | '/dashboard/webhooks'
     | '/dashboard/'
@@ -216,6 +228,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/projects': {
+      id: '/dashboard/projects'
+      path: '/projects'
+      fullPath: '/dashboard/projects'
+      preLoaderRoute: typeof DashboardProjectsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/events': {
       id: '/dashboard/events'
       path: '/events'
@@ -261,6 +280,7 @@ const DashboardApiKeysRouteWithChildren =
 interface DashboardRouteChildren {
   DashboardApiKeysRoute: typeof DashboardApiKeysRouteWithChildren
   DashboardEventsRoute: typeof DashboardEventsRoute
+  DashboardProjectsRoute: typeof DashboardProjectsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardWebhooksRoute: typeof DashboardWebhooksRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
@@ -269,6 +289,7 @@ interface DashboardRouteChildren {
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardApiKeysRoute: DashboardApiKeysRouteWithChildren,
   DashboardEventsRoute: DashboardEventsRoute,
+  DashboardProjectsRoute: DashboardProjectsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardWebhooksRoute: DashboardWebhooksRoute,
   DashboardIndexRoute: DashboardIndexRoute,

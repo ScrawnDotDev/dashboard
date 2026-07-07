@@ -174,6 +174,11 @@ export function useCachedData<T>(
   const [offline, setOffline] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fetchId = useRef(0)
+  const fetcherRef = useRef(fetcher)
+  useEffect(() => {
+    fetcherRef.current = fetcher
+  }, [fetcher])
+
   const ctx = useContext(RefreshContext)
   const online = useOnlineStatus()
   const onlineRef = useRef(online)
@@ -193,7 +198,7 @@ export function useCachedData<T>(
       setError(null)
 
       try {
-        const result = await fetcher()
+        const result = await fetcherRef.current()
         if (id !== fetchId.current) return
         setData(result)
         setOffline(false)
@@ -212,11 +217,12 @@ export function useCachedData<T>(
         setRefreshing(false)
       }
     },
-    [key, fetcher, ttl]
+    [key, ttl]
   )
 
   // Hydrate from cache on mount; fetch if missing or stale
   useEffect(() => {
+    setError(null)
     const cached = getFromCache<T>(key)
     if (cached !== null && isCacheFresh(key)) {
       setData(cached)
@@ -261,7 +267,7 @@ export function useCachedData<T>(
   useEffect(() => {
     const interval = setInterval(() => doFetch(true), ttl)
     return () => clearInterval(interval)
-  }, [ttl, key]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ttl, key, doFetch]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refresh = useCallback(async () => {
     invalidateCache(key)
